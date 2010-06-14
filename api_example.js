@@ -60,6 +60,17 @@ Goal.fromView('main/plate', function (err, them){
 });
 
 
+// Maybe instead:
+
+var the_goals;
+
+CouchModel.fromView('main/plate', Goal, function(err, them){
+  the_goals = them;
+})
+
+// that sucks.
+
+
 
 // Delete a Goal
 

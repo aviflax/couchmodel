@@ -1,4 +1,5 @@
 var sys = require('sys'),
+  assert = require('assert'),
   CouchModel = require('./couchmodel').CouchModel,
   couchdb = require('./lib/node-couchdb/lib/couchdb'),
   client = couchdb.createClient(5984, 'localhost', 'avi', 'inarockss'),
@@ -13,33 +14,42 @@ if (typeof Object.create !== 'function') {
   };
 }
 
+function pi(it) { sys.puts(sys.inspect(it)) }
 
 var Goal = CouchModel.newModel();
 
-Goal.getFoo = function() { return 'foo'; }
+Goal.prototype.getFoo = function() { return 'foo'; }
 
-Goal.db = db;
+CouchModel.db = db;
 
-//var goal = Object.create(Goal);
+var goal = new Goal();
 
-//sys.puts(sys.inspect(Goal.prototype, true))
-
-//sys.puts(new Goal().getFoo())
-
-//sys.puts(goal.getFoo());
-sys.puts(Goal.get())
-
-var newgoal = Goal.get()
-sys.puts(newgoal instanceof Goal)
-return
+//pi(goal.getFoo)
+//pi(goal.save)
 
 
 /* Get a single doc */
 
 var the_goal;
 
-Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, doc){
-  the_goal = doc;
+CouchModel.get(Goal, '41150457f3b521bb7fee1eb99a002977', function(err, it){
+  the_goal = it;
   
-  sys.puts(sys.inspect(the_goal));
+  pi(the_goal);
+  
+  assert.ok('save' in the_goal, 'oh noes!');
 });
+
+
+return
+
+
+/*** BOTTOM LINE: I want to be able to do this: **/
+
+var Goal = new CouchModel();
+
+Goal.prototype.getFoo = function() { return 'foo';}
+
+var goal = new Goal();
+
+goal.getFoo();
