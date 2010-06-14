@@ -1,5 +1,6 @@
 var sys = require('sys');
 
+function pi(it, showHidden) { sys.puts(sys.inspect(it, showHidden)) }
 
 if (typeof Object.create !== 'function') {
   Object.create = function (o) {
@@ -26,7 +27,7 @@ CouchModel.prototype.getType = function() {
 }
 
 
-CouchModel.newModel = function() {
+CouchModel.newModel = function(db) {
   
   function Model(db, doc) {
     if (db)
@@ -41,6 +42,13 @@ CouchModel.newModel = function() {
   
   Model.prototype.constructor = Model; // from http://www.coolpage.com/developer/javascript/Correct%20OOP%20for%20Javascript.html
   
+  // Add getter functions to Model
+  for (var p in CouchModel)
+    Model[p] = CouchModel[p];
+  
+  if (db)
+    Model.db = db;
+  
   return Model;
 }
 
@@ -52,20 +60,27 @@ CouchModel.checkDB = function() {
 }
 
 
-CouchModel.get = function(model, id, callback) {
+CouchModel.get = function(id, callback) {
   this.checkDB();
+
+  // Need a reference to this so it can be called in subsequent closures
+  var Model = this;
   
   this.db.getDoc(id, function(err, doc){
     if (err) {
       callback(err);
     } else {
-      callback(null, new model(this.db, doc));
+      callback(null, new Model(this.db, doc));
     }
   });
 }
 
+
 CouchModel.fromView = function(model, view, callback) {
   checkDB();
+
+  // Need a reference to this so it can be called in subsequent closures
+  var Model = this;
 }
 
 
