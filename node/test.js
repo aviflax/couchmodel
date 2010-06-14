@@ -14,21 +14,23 @@ if (typeof Object.create !== 'function') {
 }
 
 
-var Goal = Object.create(CouchModel.prototype);
+var Goal = CouchModel.newModel();
 
 Goal.getFoo = function() { return 'foo'; }
 
 Goal.db = db;
 
-var goal = Object.create(Goal);
+//var goal = Object.create(Goal);
 
 //sys.puts(sys.inspect(Goal.prototype, true))
 
 //sys.puts(new Goal().getFoo())
 
-sys.puts(goal.getFoo());
-sys.puts(goal.get())
+//sys.puts(goal.getFoo());
+sys.puts(Goal.get())
 
+var newgoal = Goal.get()
+sys.puts(newgoal instanceof Goal)
 return
 
 

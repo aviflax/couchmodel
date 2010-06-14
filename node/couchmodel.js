@@ -25,9 +25,8 @@ CouchModel.prototype.getType = function() {
 
 
 CouchModel.newModel = function() {
-  var model = function(){}
-  model.prototype = CouchModel;
-  //var instance =
+  function model() {}
+  model.prototype = CouchModel.prototype;
   return new model();
 }
 
@@ -44,7 +43,7 @@ CouchModel.prototype.get = function(id, callback) {
   
   var type = this;
   
-  return this.constructor.name;
+  return Object.create(this);
   
   this.db.getDoc(id, function(err, doc){
     if (err) {
