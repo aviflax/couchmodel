@@ -1,6 +1,6 @@
 // Create the Model
 
-var Goal = new CouchModel();
+var Goal = CouchModel.newModel(db);
 
 
 
@@ -21,16 +21,10 @@ Goal.prototype.__defineGetter__('titleNoTags', function(){
 // you can add getters or setters or plain old methods
 
 Goal.prototype.foo = function() {
-	// foo!
+	return 'foo';
 }
 
 
-
-
-// Add the DB reference to the model
-// Must do this before doing anything with the Goal object
-
-Goal.db = $.couch.db(dbname);	
 
 
 
@@ -46,8 +40,8 @@ the_goal.title = 'Personal: eat lunch';
 // Get a single Goal
 var the_goal;
 
-Goal.get('24325235235234', function(err, it){
-  the_goal = it;
+Goal.get('24325235235234', function(err, goal){
+  the_goal = goal;
 });
 	
 
@@ -59,16 +53,6 @@ Goal.fromView('main/plate', function (err, them){
   the_goals = them;
 });
 
-
-// Maybe instead:
-
-var the_goals;
-
-CouchModel.fromView('main/plate', Goal, function(err, them){
-  the_goals = them;
-})
-
-// that sucks.
 
 
 
