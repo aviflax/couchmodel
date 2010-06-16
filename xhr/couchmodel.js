@@ -1,4 +1,4 @@
-var sys = require('sys');
+//var sys = require('sys');
 
 
 function UUID() {
@@ -9,6 +9,8 @@ function UUID() {
 }
 
 
+
+
 function CouchModel(db) {
 	if ( !(this instanceof arguments.callee) ) 
 	  throw new Error("Constructor called as a function.");
@@ -17,8 +19,12 @@ function CouchModel(db) {
 
 CouchModel.newModel = function(db) {
   
-  if (!db || !(db.client))
+  if (!db || !(db.url))
     throw new Error("newModel(db) requires a valid db.");
+    
+  if (db.url.charAt(db.url.length) !== '/') {
+    db.url += '/';
+  }
   
   function Model(doc) {
     if (doc)
@@ -38,13 +44,20 @@ CouchModel.newModel = function(db) {
   Model.get = function(id, callback) {
     var Model = this;
 
-    this.prototype.db.getDoc(id, function(err, doc){
-      if (err) {
-        callback(err);
-      } else {
-        callback(null, new Model(doc));
-      }
-    });
+    var xhr = new XMLHttpRequest();
+    
+    xhr.open("GET", db.url + id);
+    
+    xhr.onreadystatechange = function(event) {
+      if (this.readyState !== 4) return;
+        
+      if (this.status === 200)
+        callback(null, new Model(JSON.parse(this.responseText)));
+      else
+        callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
+    }
+    
+    xhr.send();
   }
 
   Model.fromView = function(design, view, callback) {
@@ -92,4 +105,4 @@ CouchModel.prototype.del = function(callback) {
 }
 
 
-exports.CouchModel = CouchModel;
+//exports.CouchModel = CouchModel;
