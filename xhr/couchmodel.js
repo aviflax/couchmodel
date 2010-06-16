@@ -9,6 +9,51 @@ function UUID() {
 }
 
 
+function httpclient(method, url) {
+	if ( !(this instanceof arguments.callee) ) 
+	  throw new Error("Constructor called as a function.");
+	
+	if (!method || !url)
+	  throw new Error('Method and url are required.');
+		
+	this.onreadystatechange = function(event) {
+	  if (this.readystate !== 4) return;
+
+    if (this.status >= 200 && this.status < 300 || this.status === 1223) {
+      var contenttype = this.getResponseHeader('Content-Type');
+
+      if (contenttype === 'application/json' || contenttype === 'text/json')
+        this.callback.apply(this, null, JSON.parse(this.responseText));
+      else
+        this.callback.apply(this, null, this.responseText);
+      
+    } else {
+      this.callback.apply(this, this.status)
+    }
+	}
+	
+	try {
+	  this.open(method, url);
+	} catch (ex) {
+	  console && console.log(ex);
+	}
+}
+httpclient.prototype = new XMLHttpRequest();
+httpclient.prototype.send = function(arg1, arg2) {
+  if (typeof(arg2) === 'function') {
+    var callback = arg2;
+    var data = arg1;
+  } else if (typeof(arg1) === 'function') {
+    var callback = arg1;
+    var data = null;
+  } else {
+    throw new Error('A callback must be passed to send().');
+  }
+  
+  this.callback = callback;
+  
+  this.prototype.send.apply(this, data);
+}
 
 
 function CouchModel(db) {
@@ -44,20 +89,12 @@ CouchModel.newModel = function(db) {
   Model.get = function(id, callback) {
     var Model = this;
 
-    var xhr = new XMLHttpRequest();
-    
-    xhr.open("GET", db.url + id);
-    
-    xhr.onreadystatechange = function(event) {
-      if (this.readyState !== 4) return;
-        
-      if (this.status === 200)
-        callback(null, new Model(JSON.parse(this.responseText)));
+    new httpclient("GET", db.url + id).send(function(err, representation) {
+      if (this.status === 200 && representation instanceof Object)
+        callback(null, new Model(representation));
       else
         callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
-    }
-    
-    xhr.send();
+    });
   }
 
   Model.fromView = function(design, view, callback) {
