@@ -31,17 +31,26 @@ Goal.prototype.foo = function() {
 
 // Create a new Goal
 
-var the_goal = new Goal();
-the_goal.title = 'Personal: eat lunch';
+var goal = new Goal();
+goal.title = 'Personal: eat lunch';
+goal.save(function(err){
+  if (err)
+    throw new Error(err);
+
+  sys.puts('It worked!');
+});
 
 
 
 
 // Get a single Goal
-var the_goal;
-
 Goal.get('24325235235234', function(err, goal){
-  the_goal = goal;
+  if (err)
+    throw new Error(err);
+
+  sys.puts('It worked!');
+  
+  // Do something with goal
 });
 	
 
@@ -49,7 +58,7 @@ Goal.get('24325235235234', function(err, goal){
 // Get an array of Goals from a view
 var the_goals;
 
-Goal.fromView('main/plate', function (err, them){
+Goal.fromView('main', 'plate', function (err, them){
   the_goals = them;
 });
 

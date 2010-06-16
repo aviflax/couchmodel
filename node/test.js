@@ -40,6 +40,9 @@ var tests = [];
 /*** Test 1: Get a single doc, change it, save it ***/
 tests.push(function(){
   Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, goal){
+    if (err)
+      throw new Error(err);
+    
     assert.ok(goal instanceof Goal, 'Model instance is not an instance of the Model.');
     assert.ok(goal instanceof CouchModel, 'Model instance is not an instance of CouchModel.');
     assert.ok('getFoo' in goal, 'Model instance does not contain "getFoo".');
@@ -135,10 +138,6 @@ tests.push(function(){
   });
   
 });
-
-
-
-
 
 
 tests.forEach(function(test, i){

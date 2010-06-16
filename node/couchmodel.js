@@ -1,7 +1,5 @@
 var sys = require('sys');
 
-function pi(it, showHidden) { sys.puts(sys.inspect(it, showHidden)) }
-
 
 function UUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -11,21 +9,16 @@ function UUID() {
 }
 
 
-
 function CouchModel(db) {
 	if ( !(this instanceof arguments.callee) ) 
-	  throw new Error("Constructor called as a function");
+	  throw new Error("Constructor called as a function.");
 }
 
 
-CouchModel.prototype.db = null;
-
-CouchModel.prototype.readyState = 'READY';
-
 CouchModel.newModel = function(db) {
   
-  if (!db)
-    throw new Error("newModel(db) requires db!");
+  if (!db || !(db.client))
+    throw new Error("newModel(db) requires a valid db.");
   
   function Model(doc) {
     if (doc)
@@ -34,68 +27,51 @@ CouchModel.newModel = function(db) {
   }
   
   Model.prototype = new CouchModel();
+
+  // Not sure whether I need this or not.
+  // Model.prototype.constructor = Model; // from http://www.coolpage.com/developer/javascript/Correct%20OOP%20for%20Javascript.html
   
-  Model.prototype.constructor = Model; // from http://www.coolpage.com/developer/javascript/Correct%20OOP%20for%20Javascript.html
-  
+  // The DB goes on the prototype because it needs to be accessed by get() and fromView(),
+  // which are methods of the Constructor object, and by the instance methods.
   Model.prototype.db = db;
   
-  // Add getter functions to Model
-  for (var p in CouchModel)
-    Model[p] = CouchModel[p];
-  
-  // Add reference to DB
-  // This goes on the Constructor and not the prototype because the constructor
-  // has methods which need it, such as get()
-  // Although I suppose those could just call this.prototype.db, maybe
-  Model.db = db;
+  Model.get = function(id, callback) {
+    var Model = this;
+
+    this.prototype.db.getDoc(id, function(err, doc){
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, new Model(doc));
+      }
+    });
+  }
+
+  Model.fromView = function(design, view, callback) {
+    var Model = this;  
+
+    this.prototype.db.view(design, view, {include_docs:true}, function(err, response){
+
+      var result = [];
+
+      if (response.rows.forEach) {
+        response.rows.forEach(function(row){
+          result.push(new Model(row.doc));
+        });
+      }
+
+      callback(err, result);
+
+    });
+  }
   
   return Model;
 }
 
 
-
-CouchModel.checkDB = function() {
-  if (this.db == null)
-    throw new Error("db must be set before calling any methods!");
-}
+CouchModel.prototype.readyState = 'READY';
 
 
-CouchModel.get = function(id, callback) {
-  var Model = this;
-  
-  this.db.getDoc(id, function(err, doc){
-    if (err) {
-      callback(err);
-    } else {
-      callback(null, new Model(doc));
-    }
-  });
-}
-
-
-CouchModel.fromView = function(design, view, callback) {
-  var Model = this;  
-
-  this.db.view(design, view, {include_docs:true}, function(err, response){
-    
-    var result = [];
-    
-    if (response.rows.forEach) {
-      response.rows.forEach(function(row){
-        result.push(new Model(row.doc));
-      });
-    }
-    
-    callback(err, result);
-    
-  });
-}
-
-
-
-
-/*** INSTANCE METHODS ***/
-  
 CouchModel.prototype.save = function(callback) {
 	if (!this._id)
 	  this._id = UUID();
@@ -110,11 +86,10 @@ CouchModel.prototype.save = function(callback) {
 	});
 }
 
-	
+
 CouchModel.prototype.del = function(callback) {
 	this.db.removeDoc(this._id, this._rev, callback);
 }
 
 
-/*** EXPORTS ***/
 exports.CouchModel = CouchModel;
