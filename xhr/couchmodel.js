@@ -1,6 +1,3 @@
-//var sys = require('sys');
-
-
 function UUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -36,6 +33,9 @@ function httprequest(method, url, data, callback) {
 	xhr.open(method, url);
 	
 	xhr.setRequestHeader('Accept', 'application/json');
+	
+	if (data)
+	  xhr.setRequestHeader('Content-Type', 'application/json');
 	
   xhr.send(data);
 }
@@ -74,19 +74,16 @@ CouchModel.newModel = function(db) {
   Model.get = function(id, callback) {
     var Model = this;
 
-    httprequest("GET", db.url + id, null, function(err, representation) {
+    httprequest('GET', db.url + id, null, function(err, representation) {
       if (err)
         callback(err);
       
-      if (representation instanceof Object)
-        callback(null, new Model(representation));
-      else
-        callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
+      callback(null, new Model(representation));
     });
   }
 
   Model.fromView = function(design, view, callback) {
-    var Model = this;  
+    var Model = this;
 
     this.prototype.db.view(design, view, {include_docs:true}, function(err, response){
 
@@ -116,18 +113,26 @@ CouchModel.prototype.save = function(callback) {
 	
 	var instance = this;
 	
-	this.db.saveDoc(this._id, this, function(err, response){
-	  if (response.rev)
-      instance._rev = response.rev;
-    
-    callback(err);
+	httprequest('PUT', db.url + this._id, JSON.stringify(this), function(err, representation) {
+	  if (err)
+      callback(err);
+
+	  if (representation.rev) {
+      instance._rev = representation.rev;
+      callback(null);
+    } else {
+      callback('Response representation does not include "rev".');
+    }
 	});
 }
 
 
 CouchModel.prototype.del = function(callback) {
-	this.db.removeDoc(this._id, this._rev, callback);
+  var url = db.url + this._id + '?rev=' + this._rev;
+  
+	httprequest('DELETE', url, null, callback);
 }
 
 
-//exports.CouchModel = CouchModel;
+if (typeof(exports) === 'object')
+  exports.CouchModel = CouchModel;

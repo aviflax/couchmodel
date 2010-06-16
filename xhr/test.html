@@ -15,13 +15,41 @@
     
     var Goal = CouchModel.newModel(db);
     
-    var goal = Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, goal){
+    Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, goal){
       if (err)
         throw new Error(err);
       
-      alert('Retreived Goal!');
-      alert(JSON.stringify(goal));
+      console.log('Retreived Goal!');
+      
+      goal.title += ', blah';
+      
+      goal.save(function(err){
+        if (err)
+          throw new Error(err);
+        
+        console.log('Saved Goal!');
+      })
     });
+    
+    
+    var goal = new Goal({title:'foo'});
+    
+    goal.save(function(err){
+      if (err)
+        throw new Error(err);
+      
+      console.log('Saved new Goal with id: ' + goal._id + ' and rev: ' + goal._rev);
+      
+      goal.del(function(err){
+        if (err)
+          throw new Error(err);
+
+        console.log('Deleted new Goal!');
+      });
+    })
+    
+    
+    
     
   </script>
 	
