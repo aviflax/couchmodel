@@ -85,8 +85,9 @@ CouchModel.newModel = function(db) {
   Model.fromView = function(design, view, callback) {
     var Model = this;
 
-    this.prototype.db.view(design, view, {include_docs:true}, function(err, response){
+    var url = db.url + '_design/' + design + '/_view/' + view + '?include_docs=true';
 
+    httprequest('GET', url, null, function(err, response){
       var result = [];
 
       if (response.rows.forEach) {
@@ -96,7 +97,6 @@ CouchModel.newModel = function(db) {
       }
 
       callback(err, result);
-
     });
   }
   

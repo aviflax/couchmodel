@@ -51,6 +51,33 @@
     
     
     
+    Goal.fromView('main', 'plate', function(err, goals){
+
+       console.log(goals.length === 5 ? null : 'goals does not contain 5 goals.');
+       console.log(goals[0] instanceof Goal ? null : 'goals does not contain instances of Goal.');
+
+       console.log('Successfully retreived 5 goals');
+
+       function randomRangeInt(min, max) {
+         return Math.floor(Math.random() * (max - min + 1)) + min;
+       }
+
+       var rand_i = randomRangeInt(0, goals.length-1);
+       var rand_goal = goals[rand_i];
+
+       rand_goal.title += ', changed';
+
+       rand_goal.save(function(err){
+         if (err)
+           throw new Error(sys.inspect(err));
+
+         console.log('Successfully saved goal ' + rand_i + ' of array ' + ' with id ' + rand_goal._id + ' and rev ' + rand_goal._rev);
+       });
+
+     });
+    
+    
+    
   </script>
 	
 </head>
