@@ -10,33 +10,33 @@ function httprequest(method, url, data, callback) {
 
   var xhr = new XMLHttpRequest();
 
-	xhr.onreadystatechange = function(event) {
-	  if (this.readyState !== 4) {
-	    //console.log(this.readyState);
-	    return;
-	  }
+  xhr.onreadystatechange = function(event) {
+    if (this.readyState !== 4) {
+      //console.log(this.readyState);
+      return;
+    }
 
     if (this.status >= 200 && this.status < 300 || this.status === 1223) {
-      
+
       var contenttype = this.getResponseHeader('Content-Type');
 
       if (contenttype === 'application/json' || contenttype === 'text/json')
-        callback(null, JSON.parse(this.responseText));
+      callback(null, JSON.parse(this.responseText));
       else
-        callback(null, this.responseText);
-      
+      callback(null, this.responseText);
+
     } else {
       callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
     }
-	}
-	
-	xhr.open(method, url);
-	
-	xhr.setRequestHeader('Accept', 'application/json');
-	
-	if (data)
-	  xhr.setRequestHeader('Content-Type', 'application/json');
-	
+  }
+
+  xhr.open(method, url);
+
+  xhr.setRequestHeader('Accept', 'application/json');
+
+  if (data)
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
   xhr.send(data);
 }
 
