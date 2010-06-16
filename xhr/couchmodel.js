@@ -9,50 +9,35 @@ function UUID() {
 }
 
 
-function httpclient(method, url) {
-	if ( !(this instanceof arguments.callee) ) 
-	  throw new Error("Constructor called as a function.");
-	
-	if (!method || !url)
-	  throw new Error('Method and url are required.');
-		
-	this.onreadystatechange = function(event) {
-	  if (this.readystate !== 4) return;
+function httprequest(method, url, data, callback) {
+
+  var xhr = new XMLHttpRequest();
+
+	xhr.onreadystatechange = function(event) {
+	  if (this.readyState !== 4) {
+	    //console.log(this.readyState);
+	    return;
+	  }
 
     if (this.status >= 200 && this.status < 300 || this.status === 1223) {
+      
       var contenttype = this.getResponseHeader('Content-Type');
 
       if (contenttype === 'application/json' || contenttype === 'text/json')
-        this.callback.apply(this, null, JSON.parse(this.responseText));
+        callback(null, JSON.parse(this.responseText));
       else
-        this.callback.apply(this, null, this.responseText);
+        callback(null, this.responseText);
       
     } else {
-      this.callback.apply(this, this.status)
+      callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
     }
 	}
 	
-	try {
-	  this.open(method, url);
-	} catch (ex) {
-	  console && console.log(ex);
-	}
-}
-httpclient.prototype = new XMLHttpRequest();
-httpclient.prototype.send = function(arg1, arg2) {
-  if (typeof(arg2) === 'function') {
-    var callback = arg2;
-    var data = arg1;
-  } else if (typeof(arg1) === 'function') {
-    var callback = arg1;
-    var data = null;
-  } else {
-    throw new Error('A callback must be passed to send().');
-  }
-  
-  this.callback = callback;
-  
-  this.prototype.send.apply(this, data);
+	xhr.open(method, url);
+	
+	xhr.setRequestHeader('Accept', 'application/json');
+	
+  xhr.send(data);
 }
 
 
@@ -67,7 +52,7 @@ CouchModel.newModel = function(db) {
   if (!db || !(db.url))
     throw new Error("newModel(db) requires a valid db.");
     
-  if (db.url.charAt(db.url.length) !== '/') {
+  if (db.url.charAt(db.url.length-1) !== '/') {
     db.url += '/';
   }
   
@@ -89,8 +74,11 @@ CouchModel.newModel = function(db) {
   Model.get = function(id, callback) {
     var Model = this;
 
-    new httpclient("GET", db.url + id).send(function(err, representation) {
-      if (this.status === 200 && representation instanceof Object)
+    httprequest("GET", db.url + id, null, function(err, representation) {
+      if (err)
+        callback(err);
+      
+      if (representation instanceof Object)
         callback(null, new Model(representation));
       else
         callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
