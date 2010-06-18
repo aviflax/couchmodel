@@ -5,82 +5,11 @@
 	<title>test</title>
 	<meta name="author" content="Avi Flax">
 	
-	
-  <!--<script src="json2.js" type="text/javascript" charset="utf-8"></script>-->
 	<script src="couchmodel.js" type="text/javascript" charset="utf-8"></script>
-
-  <script type="text/javascript" charset="utf-8">
-    
-    var db = {url: 'http://goalplate.local/db/avi/'};
-    
-    var Goal = CouchModel.newModel(db);
-    
-    Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, goal){
-      if (err)
-        throw new Error(err);
-      
-      console.log('Retreived Goal!');
-      
-      goal.title += ', blah';
-      
-      goal.save(function(err){
-        if (err)
-          throw new Error(err);
-        
-        console.log('Saved Goal!');
-      })
-    });
-    
-    
-    var goal = new Goal({title:'foo'});
-    
-    goal.save(function(err){
-      if (err)
-        throw new Error(err);
-      
-      console.log('Saved new Goal with id: ' + goal._id + ' and rev: ' + goal._rev);
-      
-      goal.del(function(err){
-        if (err)
-          throw new Error(err);
-
-        console.log('Deleted new Goal!');
-      });
-    })
-    
-    
-    
-    
-    Goal.fromView('main', 'plate', function(err, goals){
-
-       console.log(goals.length === 5 ? null : 'goals does not contain 5 goals.');
-       console.log(goals[0] instanceof Goal ? null : 'goals does not contain instances of Goal.');
-
-       console.log('Successfully retreived 5 goals');
-
-       function randomRangeInt(min, max) {
-         return Math.floor(Math.random() * (max - min + 1)) + min;
-       }
-
-       var rand_i = randomRangeInt(0, goals.length-1);
-       var rand_goal = goals[rand_i];
-
-       rand_goal.title += ', changed';
-
-       rand_goal.save(function(err){
-         if (err)
-           throw new Error(sys.inspect(err));
-
-         console.log('Successfully saved goal ' + rand_i + ' of array ' + ' with id ' + rand_goal._id + ' and rev ' + rand_goal._rev);
-       });
-
-     });
-    
-    
-    
-  </script>
+	<script src="test.js" type="text/javascript" charset="utf-8"></script>
 	
 </head>
 <body>
+  <p>check the console</p>
 </body>
 </html>

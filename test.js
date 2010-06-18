@@ -1,7 +1,35 @@
-var sys = require('sys'),
-  assert = require('assert'),
-  CouchModel = require('./couchmodel').CouchModel;
+if (typeof(require) === 'function') {
+
+  var sys = require('sys'),
+    assert = require('assert'),
+    CouchModel = require('./couchmodel').CouchModel;
   
+  var pi = function(it, showHidden) { sys.puts(sys.inspect(it, showHidden)) }
+
+} else {
+  
+  var sys = {
+    puts: function(it) {
+      console.log(it);
+    },
+    inspect: function(it, showHidden) {
+      return it;
+    }
+  }
+  
+  var assert = {
+    ok: function(result, message) {
+      if (!result) throw new Error(message);
+    },
+    equal: function(left, right, message) {
+      if (left != right) throw new Error(message);
+    }    
+    
+  }
+  
+}
+
+
 function pi(it, showHidden) { sys.puts(sys.inspect(it, showHidden)) }
 
 
