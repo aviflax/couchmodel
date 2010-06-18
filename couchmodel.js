@@ -45,8 +45,9 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
 
 } else if (typeof(require) === 'function') {
   
-  var http = require('http');
-  var urllib = require('url');
+  var http = require('http'),
+      urllib = require('url'),
+      base64 = require('base64');
 
   httprequest = function(method, url, data, callback) {
     
