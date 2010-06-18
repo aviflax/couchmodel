@@ -47,17 +47,17 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
   
   var http = require('http'),
       urllib = require('url'),
-      base64 = require('base64');
+      base64 = require('./base64');
 
   httprequest = function(method, url, data, callback) {
     
-    var parsed_url = urllib.parse(url);
-    
-    var client = http.createClient(parsed_url.port, parsed_url.hostname);
+    var url = urllib.parse(url);
+    var client = http.createClient(url.port, url.hostname);
     
     var req_headers = [];
     
     req_headers.push(['Accept', 'application/json']);
+    req_headers.push(['Host', url.hostname]);
 
     if (data !== null) {
       
@@ -68,7 +68,8 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
       req_headers.push(['Content-Length', data.length]);
     }
     
-    var request = client.request(method.toUpperCase(), url, req_headers);
+    var req_path = url.pathname + (url.search || '');
+    var request = client.request(method.toUpperCase(), req_path, req_headers);
     
     var response_body = '';
     
