@@ -5,10 +5,11 @@ function UUID() {
   }).toUpperCase();
 }
 
+var httprequest;
 
-if (typeof(XMLHttpRequest) === 'object') {
+if (typeof(XMLHttpRequest) !== 'undefined') {
 
-  function httprequest(method, url, data, callback) {
+  httprequest = function(method, url, data, callback) {
 
     var xhr = new XMLHttpRequest();
 
@@ -42,13 +43,14 @@ if (typeof(XMLHttpRequest) === 'object') {
 
   }
 
-} else {
+} else if (typeof(require) === 'function') {
   
   var http = require('http');
+  var urllib = require('url');
 
-  function httprequest(method, url, data, callback) {
+  httprequest = function(method, url, data, callback) {
     
-    var parsed_url = require('url').parse(url);
+    var parsed_url = urllib.parse(url);
     
     var client = http.createClient(parsed_url.port, parsed_url.hostname);
     
@@ -99,7 +101,9 @@ if (typeof(XMLHttpRequest) === 'object') {
     request.end();
   }
   
-} 
+} else {
+  throw new Error('No XHR and no require? What the?');
+}
 
 
 function CouchModel(db) {
@@ -129,7 +133,7 @@ CouchModel.newModel = function(db) {
   // Model.prototype.constructor = Model; // from http://www.coolpage.com/developer/javascript/Correct%20OOP%20for%20Javascript.html
   
   // The DB goes on the prototype because it needs to be accessed by get() and fromView(),
-  // which are methods of the Constructor object, and by the instance methods.
+  // which are methods of the Constructor object, and also by the instance methods.
   Model.prototype.db = db;
   
   Model.get = function(id, callback) {
@@ -138,8 +142,8 @@ CouchModel.newModel = function(db) {
     httprequest('GET', db.url + id, null, function(err, representation) {
       if (err)
         callback(err);
-      
-      callback(null, new Model(representation));
+      else
+        callback(null, new Model(representation));
     });
   }
 
@@ -189,7 +193,7 @@ CouchModel.prototype.save = function(callback) {
 
 
 CouchModel.prototype.del = function(callback) {
-  var url = db.url + this._id + '?rev=' + this._rev;
+  var url = this.db.url + this._id + '?rev=' + this._rev;
   
 	httprequest('DELETE', url, null, callback);
 }

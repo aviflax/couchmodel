@@ -71,7 +71,6 @@ tests.push(function(){
 
 
 
-
 /*** Test 2: Create a new goal, save it, then delete it ***/
 tests.push(function(){
   
@@ -80,9 +79,7 @@ tests.push(function(){
   goal.title = 'Make some soup';
   
   goal.save(function(err){
-    
-    sys.puts('Callback running');
-    
+        
     if (err)
       throw new Error(sys.inspect(err));
     
@@ -97,6 +94,7 @@ tests.push(function(){
 
       // this should now return nothing
       Goal.get(old_id, function(err, goal){
+
         assert.ok(err, 'This should return an error but it isn\'t!');
         
         if (err)
