@@ -6,39 +6,100 @@ function UUID() {
 }
 
 
-function httprequest(method, url, data, callback) {
+if (typeof(XMLHttpRequest) === 'object') {
 
-  var xhr = new XMLHttpRequest();
+  function httprequest(method, url, data, callback) {
 
-  xhr.onreadystatechange = function(event) {
-    if (this.readyState !== 4) {
-      //console.log(this.readyState);
-      return;
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function(event) {
+      if (this.readyState !== 4) {
+        return;
+      }
+
+      if (this.status >= 200 && this.status < 300 || this.status === 1223) {
+
+        var contenttype = this.getResponseHeader('Content-Type');
+
+        if (contenttype === 'application/json' || contenttype === 'text/json')
+          callback(null, JSON.parse(this.responseText));
+        else
+          callback(null, this.responseText);
+
+      } else {
+        callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
+      }
     }
 
-    if (this.status >= 200 && this.status < 300 || this.status === 1223) {
+    xhr.open(method, url);
 
-      var contenttype = this.getResponseHeader('Content-Type');
+    xhr.setRequestHeader('Accept', 'application/json');
 
-      if (contenttype === 'application/json' || contenttype === 'text/json')
-      callback(null, JSON.parse(this.responseText));
-      else
-      callback(null, this.responseText);
+    if (data)
+      xhr.setRequestHeader('Content-Type', 'application/json');
 
-    } else {
-      callback(this.status + ' ' + this.statusText + '\n' + this.responseText);
-    }
+    xhr.send(data);
+
   }
 
-  xhr.open(method, url);
+} else {
+  
+  var http = require('http');
 
-  xhr.setRequestHeader('Accept', 'application/json');
+  function httprequest(method, url, data, callback) {
+    
+    var parsed_url = require('url').parse(url);
+    
+    var client = http.createClient(parsed_url.port, parsed_url.hostname);
+    
+    var req_headers = [];
+    
+    req_headers.push(['Accept', 'application/json']);
 
-  if (data)
-  xhr.setRequestHeader('Content-Type', 'application/json');
+    if (data !== null) {
+      
+      if (typeof(data) === 'object')
+        data = JSON.stringify(data);
+      
+      req_headers.push(['Content-Type', 'application/json']);
+      req_headers.push(['Content-Length', data.length]);
+    }
+    
+    var request = client.request(method.toUpperCase(), url, req_headers);
+    
+    var response_body = '';
+    
+    request.addListener('response', function(response) {
+      response.setEncoding('utf8');
+      
+      response.addListener('data', function(chunk) {
+        response_body += chunk;
+      });
+      
+      response.addListener('end', function() {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
 
-  xhr.send(data);
-}
+          var content_type = response.headers['content-type'];
+
+          if (content_type === 'application/json' || content_type === 'text/json')
+            callback(null, JSON.parse(response_body));
+          else
+            callback(null, response_body);
+
+        } else {
+          callback(response.statusCode + ': ' + response_body);
+        }
+      })
+    });
+    
+    if (data !== null) {
+      request.write(data, 'utf8');
+    }
+    
+    request.end();
+  }
+  
+} 
 
 
 function CouchModel(db) {
@@ -113,7 +174,7 @@ CouchModel.prototype.save = function(callback) {
 	
 	var instance = this;
 	
-	httprequest('PUT', db.url + this._id, JSON.stringify(this), function(err, representation) {
+	httprequest('PUT', this.db.url + this._id, JSON.stringify(this), function(err, representation) {
 	  if (err)
       callback(err);
 
@@ -121,7 +182,7 @@ CouchModel.prototype.save = function(callback) {
       instance._rev = representation.rev;
       callback(null);
     } else {
-      callback('Response representation does not include "rev".');
+      callback('Response representation does not include "rev". It is a ' + typeof(representation) + ': ' + representation);
     }
 	});
 }

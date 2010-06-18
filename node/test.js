@@ -1,6 +1,6 @@
 var sys = require('sys'),
   assert = require('assert'),
-  CouchModel = require('./couchmodel').CouchModel,
+  CouchModel = require('../xhr/couchmodel').CouchModel,
   couchdb = require('./lib/node-couchdb/lib/couchdb'),
   client = couchdb.createClient(5984, 'localhost', 'avi', 'letmein'),
   db = client.db('avi');
@@ -9,7 +9,11 @@ function pi(it, showHidden) { sys.puts(sys.inspect(it, showHidden)) }
 
 
 
-
+db = {
+  url: 'http://localhost:5984/avi/',
+  username: 'avi',
+  password: 'letmein'
+}
 
 
 
