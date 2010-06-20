@@ -32,7 +32,7 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
       }
     }
 
-    xhr.open(method, url);
+    xhr.open(method, url, true, this.username, this.password);
 
     xhr.setRequestHeader('Accept', 'application/json');
 
@@ -50,7 +50,6 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
       base64 = require('./base64');
 
   httprequest = function(method, url, data, callback) {
-    
     var url = urllib.parse(url);
     var client = http.createClient(url.port, url.hostname);
     
@@ -58,6 +57,10 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
     
     req_headers.push(['Accept', 'application/json']);
     req_headers.push(['Host', url.hostname]);
+
+    if (this && 'username' in this && 'password' in this) {
+      req_headers.push(['Authorization', 'Basic ' + base64.encode(this.username + ":" + this.password)]);
+    }
 
     if (data !== null) {
       
@@ -141,7 +144,7 @@ CouchModel.newModel = function(db) {
   Model.get = function(id, callback) {
     var Model = this;
 
-    httprequest('GET', db.url + id, null, function(err, representation) {
+    httprequest.call(db, 'GET', db.url + id, null, function(err, representation) {
       if (err)
         callback(err);
       else
@@ -154,7 +157,7 @@ CouchModel.newModel = function(db) {
 
     var url = db.url + '_design/' + design + '/_view/' + view + '?include_docs=true';
 
-    httprequest('GET', url, null, function(err, response){
+    httprequest.call(db, 'GET', url, null, function(err, response){
       var result = [];
 
       if (response.rows.forEach) {
@@ -180,7 +183,7 @@ CouchModel.prototype.save = function(callback) {
 	
 	var instance = this;
 	
-	httprequest('PUT', this.db.url + this._id, JSON.stringify(this), function(err, representation) {
+	httprequest.call(this.db, 'PUT', this.db.url + this._id, JSON.stringify(this), function(err, representation) {
 	  if (err)
       callback(err);
 
@@ -197,7 +200,7 @@ CouchModel.prototype.save = function(callback) {
 CouchModel.prototype.del = function(callback) {
   var url = this.db.url + this._id + '?rev=' + this._rev;
   
-	httprequest('DELETE', url, null, callback);
+	httprequest.call(this.db, 'DELETE', url, null, callback);
 }
 
 
