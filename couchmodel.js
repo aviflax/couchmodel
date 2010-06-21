@@ -151,10 +151,14 @@ CouchModel.newModel = function(db) {
     });
   }
 
-  Model.list = function(design, view, callback) {
+  Model.list = function(design, view, options, callback) {
     var Model = this;
 
     var url = db.url + '_design/' + design + '/_view/' + view + '?include_docs=true';
+
+    for (var key in options) {
+      url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(options[key]);
+    }
 
     httprequest.call(db, 'GET', url, null, function(err, response){
       var result = [];
