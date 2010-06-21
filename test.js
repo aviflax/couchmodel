@@ -65,7 +65,7 @@ var tests = [];
 
 
 
-/*** Test 1: Get a single doc, change it, save it ***/
+/*** Test 1: Get a single Goal, change it, save it ***/
 tests.push(function(){
   Goal.get('41150457f3b521bb7fee1eb99a002977', function(err, goal){
     if (err)
@@ -74,10 +74,12 @@ tests.push(function(){
     assert.ok(goal instanceof Goal, 'Model instance is not an instance of the Model.');
     assert.ok(goal instanceof CouchModel, 'Model instance is not an instance of CouchModel.');
     assert.ok('getFoo' in goal, 'Model instance does not contain "getFoo".');
-    assert.equal(goal.getFoo(), 'foo', 'Foo is not returning "foo"!');
+    assert.equal(goal.getFoo(), 'foo', 'getFoo() is not returning "foo"!');
     assert.ok('save' in goal, 'Model instance does not contain "save".');
     
     goal.title += ', edited';
+    
+    var old_rev = goal._rev;
     
     goal.save(function(err){
       if (err)
@@ -85,7 +87,16 @@ tests.push(function(){
       
       sys.puts('Goal successfully saved with new title: ' + goal.title + ' and new rev: ' + goal._rev);
         
-      // Should probably assert something here
+      assert.ok(goal._rev !== old_rev, "The rev didn't change!");
+      
+      goal.title = goal.title.replace(', edited', '');
+      
+      goal.save(function(err{
+        if (err)
+          throw new Error(err);
+
+        sys.puts('Goal successfully saved with new title: ' + goal.title + ' and new rev: ' + goal._rev);
+      }));
     });
   });
 });
@@ -138,7 +149,7 @@ tests.push(function(){
 /*** Test 3: Get an array of Goals from a view **/
 tests.push(function(){
   
-  Goal.fromView('main', 'plate', function(err, goals){
+  Goal.list('main', 'plate', function(err, goals){
     
     assert.ok(goals.length === 5, 'goals does not contain 5 goals.');
     assert.ok(goals[0] instanceof Goal, 'goals does not contain instances of Goal.');

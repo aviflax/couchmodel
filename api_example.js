@@ -55,10 +55,10 @@ Goal.get('24325235235234', function(err, goal){
 	
 
 
-// Get an array of Goals from a view
+// Get a list (array) of Goals (from a view)
 var the_goals;
 
-Goal.fromView('main', 'plate', function (err, them){
+Goal.list('main', 'plate', function (err, them){
   the_goals = them;
 });
 

@@ -133,13 +133,12 @@ CouchModel.newModel = function(db) {
   }
   
   Model.prototype = new CouchModel();
-
-  // Not sure whether I need this or not.
-  // Model.prototype.constructor = Model; // from http://www.coolpage.com/developer/javascript/Correct%20OOP%20for%20Javascript.html
   
-  // The DB goes on the prototype because it needs to be accessed by get() and fromView(),
-  // which are methods of the Constructor object, and also by the instance methods.
+  // The DB goes on the prototype because in addition to being used by get() and list(),
+  // which are methods of the Constructor object, it's also used by the instance methods.
   Model.prototype.db = db;
+
+  // Model.get() and Model.list() can access db via closure
   
   Model.get = function(id, callback) {
     var Model = this;
@@ -152,7 +151,7 @@ CouchModel.newModel = function(db) {
     });
   }
 
-  Model.fromView = function(design, view, callback) {
+  Model.list = function(design, view, callback) {
     var Model = this;
 
     var url = db.url + '_design/' + design + '/_view/' + view + '?include_docs=true';
@@ -184,13 +183,13 @@ CouchModel.prototype.save = function(callback) {
 	var instance = this;
 	
 	httprequest.call(this.db, 'PUT', this.db.url + this._id, JSON.stringify(this), function(err, representation) {
-	  if (err)
+	  if (err && callback)
       callback(err);
 
-	  if (representation.rev) {
+	  if (representation.rev && callback) {
       instance._rev = representation.rev;
       callback(null);
-    } else {
+    } else if (callback) {
       callback('Response representation does not include "rev". It is a ' + typeof(representation) + ': ' + representation);
     }
 	});
