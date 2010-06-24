@@ -156,17 +156,29 @@ CouchModel.newModel = function(db) {
 
     var url = db.url + '_design/' + design + '/_view/' + view + '?include_docs=true';
 
-    for (var key in options) {
-      url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(options[key]);
+    for (var name in options) {
+      var value = options[name];
+
+      if (name == "key" || name == "startkey" || name == "endkey")
+        value = JSON.stringify(value);
+
+      url += '&' + encodeURIComponent(name) + '=' + encodeURIComponent(value);
     }
 
     httprequest.call(db, 'GET', url, null, function(err, response){
-      var result = [];
+      var ModelList = function(){};
+      ModelList.prototype = new Array();
+      
+      ModelList.prototype.lastKey = null;
+      
+      var result = new ModelList();
 
-      if (response.rows.forEach) {
+      if (typeof(response.rows) === 'object' && response.rows instanceof Array) {
         response.rows.forEach(function(row){
           result.push(new Model(row.doc));
         });
+        
+        result.lastKey = response.rows[response.rows.length-1].key;
       }
 
       callback(err, result);
