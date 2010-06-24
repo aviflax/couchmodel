@@ -178,7 +178,7 @@ CouchModel.newModel = function(db) {
           result.push(new Model(row.doc));
         });
         
-        result.lastKey = response.rows[response.rows.length-1].key;
+        result.lastKey = response.rows.length ? response.rows[response.rows.length-1].key : null;
       }
 
       callback(err, result);
