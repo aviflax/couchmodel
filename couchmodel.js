@@ -36,8 +36,12 @@ if (typeof(XMLHttpRequest) !== 'undefined') {
 
     xhr.setRequestHeader('Accept', 'application/json');
 
-    if (data)
+    if (data) {
       xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      if (typeof(data) === 'object')
+        data = JSON.stringify(data);
+    }
 
     xhr.send(data);
 
@@ -198,7 +202,7 @@ CouchModel.prototype.save = function(callback) {
 	
 	var instance = this;
 	
-	httprequest.call(this.db, 'PUT', this.db.url + this._id, JSON.stringify(this), function(err, representation) {
+	httprequest.call(this.db, 'PUT', this.db.url + this._id, this, function(err, representation) {
 	  if (err && callback)
       callback(err);
 
