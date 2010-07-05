@@ -1,3 +1,18 @@
+// First need a reference to the DB
+
+The minimum requirement for DB is: it must have a property "url"
+
+so:
+
+var db = {url: "http://host/path/to/db"};
+
+//optionally, you can add credentials:
+// db.username = username;
+// db.password = password;
+
+
+
+
 // Create the Model
 
 var Goal = CouchModel.newModel(db);
@@ -24,7 +39,13 @@ Goal.prototype.foo = function() {
 	return 'foo';
 }
 
+// you can even override prototype methods
+Goal.prototype.save = function(callback) {
+  this.last_modified = new Date().toISOString();
 
+  // call the super-object prototype's save()
+  CouchModel.prototype.save.call(this, callback);
+}
 
 
 
@@ -56,10 +77,12 @@ Goal.get('24325235235234', function(err, goal){
 
 
 // Get a list (array) of Goals (from a view)
-var the_goals;
 
-Goal.list('main', 'plate', function (err, them){
-  the_goals = them;
+Goal.list('main', 'plate', function (err, goals){
+  // do something with the goals
+  goals.forEach(function(goal){
+    sys.puts(goal.title);
+  })
 });
 
 
@@ -78,13 +101,13 @@ the_goal.del(function(err){
 
 // Access an aspect of a Goal
 
-alert(the_goal.title);
+alert(goal.title);
 
 
 
 // Change an aspect of a Goal
 
-the_goal.complete = true;
+goal.complete = true;
 
 
 
@@ -95,4 +118,35 @@ the_goal.save(function(err){
 		alert('save failed: ' + err);
 	else
 		alert('save succeeded! id is:' + this._id);
+})
+
+
+
+
+
+
+/** OPTIONAL: CouchDB helper object
+ *   This object is just a convenience object for retrieving arbitrary views.
+ *   It doesn't really fit the mission of CouchModel, but it's useful, because
+ *   it leverages CouchModel's cross-platform infrastructure
+*/
+
+var db = new CouchModel.CouchDB("http://host/path/to/db");
+
+var design_doc = 'main';
+var view_name = 'stuff';
+var options = {limit: 21};
+
+db.view(design_doc, view_name, options, function(err, data){
+  if (err)
+    throw new Error(err);
+    
+  // do something with the data
+  alert('Got ' + data.rows.length + " results!");
+  
+  data.rows.forEach(function(row){
+    
+    alert("key: " + row.key + "\nvalue: " + row.value);
+    
+  });
 })

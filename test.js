@@ -91,16 +91,15 @@ tests.push(function(){
       
       goal.title = goal.title.replace(', edited', '');
       
-      goal.save(function(err{
+      goal.save(function(err){
         if (err)
           throw new Error(err);
 
         sys.puts('Goal successfully saved with new title: ' + goal.title + ' and new rev: ' + goal._rev);
-      }));
+      });
     });
   });
 });
-
 
 
 
@@ -149,12 +148,12 @@ tests.push(function(){
 /*** Test 3: Get an array of Goals from a view **/
 tests.push(function(){
   
-  Goal.list('main', 'plate', function(err, goals){
+  Goal.list('main', 'plate', {limit: 2}, function(err, goals){
     
-    assert.ok(goals.length === 5, 'goals does not contain 5 goals.');
+    assert.ok(goals.length === 2, 'goals does not contain 2 goals.');
     assert.ok(goals[0] instanceof Goal, 'goals does not contain instances of Goal.');
     
-    sys.puts('Successfully retreived 5 goals');
+    sys.puts('Successfully retreived ' + goals.length + ' goals');
     
     function randomRangeInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -193,7 +193,38 @@ CouchModel.newModel = function(db) {
 }
 
 
-CouchModel.prototype.readyState = 'READY';
+CouchModel.CouchDB = function(url) {
+  if ( !(this instanceof arguments.callee) ) 
+	  throw new Error("Constructor called as a function.");
+
+  if (typeof(url) !== 'string' || !(url.contains('http')))
+    throw new Error('db() requires a URL.');
+
+  // "this" refers to the new instance of CouchDB
+  this.url = url;
+}
+
+
+CouchModel.CouchDB.prototype.view = function(design, name, options, callback) {
+  var url = this.url + '_design/' + design + '/_view/' + name;
+  
+  if (options) {
+    var params = []
+    
+    for (var name in options) {
+      params.push(encodeURIComponent(name) + "=" + encodeURIComponent(options[name]));
+    }
+    
+    url += '?' + params.join('&');
+  }
+  
+  httprequest('GET', url, null, callback);
+}
+
+
+
+// Not sure if I need/want this, it's just an idea
+//CouchModel.prototype.readyState = 'READY';
 
 
 CouchModel.prototype.save = function(callback) {
@@ -213,6 +244,10 @@ CouchModel.prototype.save = function(callback) {
       callback('Response representation does not include "rev". It is a ' + typeof(representation) + ': ' + representation);
     }
 	});
+	
+	// In many libraries I like to have methods return this, to support chaining
+	// But here that'd be a mistake, because people might forget that saving is async, and if they want something to
+	// happen after the saving completes, it has to be in the callback
 }
 
 
@@ -222,6 +257,11 @@ CouchModel.prototype.del = function(callback) {
 	httprequest.call(this.db, 'DELETE', url, null, callback);
 }
 
+
+CouchModel.prototype.set = function(name, value) {
+  this[name] = value;
+  return this;
+}
 
 if (typeof(exports) === 'object')
   exports.CouchModel = CouchModel;
