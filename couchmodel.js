@@ -1,3 +1,5 @@
+"use strict";
+
 function UUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -121,7 +123,7 @@ function CouchModel(db) {
 }
 
 
-CouchModel.newModel = function(db) {
+CouchModel.newModel = function(db, type) {
   
   if (!db || !(db.url))
     throw new Error("newModel(db) requires a valid db.");
@@ -134,9 +136,16 @@ CouchModel.newModel = function(db) {
     if (doc)
       for (var p in doc)
         this[p] = doc[p];
+        
+    if (typeof(type) === 'string' && type.length)
+      this.type = type;
+      
+    this.init();
   }
   
   Model.prototype = new CouchModel();
+  
+  Model.prototype.init = function(){};
   
   // The DB goes on the prototype because in addition to being used by get() and list(),
   // which are methods of the Constructor object, it's also used by the instance methods.
@@ -174,6 +183,7 @@ CouchModel.newModel = function(db) {
       ModelList.prototype = new Array();
       
       ModelList.prototype.lastKey = null;
+      ModelList.prototype.lastID = null;
       
       var result = new ModelList();
 
@@ -183,6 +193,7 @@ CouchModel.newModel = function(db) {
         });
         
         result.lastKey = response.rows.length ? response.rows[response.rows.length-1].key : null;
+        result.lastID = response.rows.length ? response.rows[response.rows.length-1].id : null;
       }
 
       callback(err, result);

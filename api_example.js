@@ -1,8 +1,8 @@
 // First need a reference to the DB
 
-The minimum requirement for DB is: it must have a property "url"
+//The minimum requirement for DB is: it must have a property "url"
 
-so:
+//so:
 
 var db = {url: "http://host/path/to/db"};
 
@@ -16,6 +16,15 @@ var db = {url: "http://host/path/to/db"};
 // Create the Model
 
 var Goal = CouchModel.newModel(db);
+
+
+
+// ** Alternate syntax **
+// If you're using explicit typing, 
+// you can pass a second parameter in with the explicit type name
+// var Goal = CouchModel.newModel(db, 'goal');
+
+
 
 
 
@@ -33,6 +42,7 @@ Goal.prototype.__defineGetter__('titleNoTags', function(){
 });
 
 
+
 // you can add getters or setters or plain old methods
 
 Goal.prototype.foo = function() {
@@ -45,6 +55,14 @@ Goal.prototype.save = function(callback) {
 
   // call the super-object prototype's save()
   CouchModel.prototype.save.call(this, callback);
+}
+
+
+// you can also add a special function named "init"
+// and it will be called during construction
+
+Goal.prototype.init = function() {
+  this.created = new Date().toISOString();
 }
 
 
